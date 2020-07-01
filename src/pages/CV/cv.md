@@ -1,12 +1,18 @@
-# Cuspide illuc
+# cv
 
-## Exponit veros
+## education
 
-Lorem markdownum mutantur illa. Pro aliquid semel laboribus remansit *dimissis
-agitantia* formidine perenni illuc ora Cereale. Motu media priscosque et rapiunt
-victima vetustae fratres: dixi. Et casuraque ad Semeles litore.
+doctor of philosophy, McGill University, 2020-present
 
-## Numero contigit sublimis scilicet errent fortissime sparsas
+
+master of arts
+University of Colorado at Boulder
+
+## teaching experience
+
+## work experience
+
+## skills
 
 Tendebant omnia offensasque talia errat [haut](http://precor.org/intumidam)
 sacra detraxit dilapsa; caelestia supponas dives fratribus quotiens parat

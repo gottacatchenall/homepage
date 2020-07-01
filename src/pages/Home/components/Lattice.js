@@ -1,100 +1,308 @@
-import React, { Component } from 'react'
-import './Lattice.sass'
+import React, { Component } from 'react';
+import './Lattice.sass';
+
+var PREDATOR = 1;
+var PREY = 0;
+var EMPTY = 2;
+
+var C_PREY = 0.1;
 
 class Lattice extends Component {
-   constructor(props){
-      super(props);
-      this.createLattice = this.createLattice.bind(this);
-      this.update_lattice = this.update_lattice.bind(this);
-      this.get_new_state = this.get_new_state.bind(this);
-      this.get_neighbors = this.get_neighbors.bind(this);
-      this.pause = this.pause.bind(this);
-      this.state = { lattice: null, anim: 1, N:25, pred: [], prey: [] }
-   }
-
-   componentWillMount() {
-        this.createLattice();
-   }
-
-   componentDidMount() {
-       setInterval(this.update_lattice, 100);
-   }
-   componentWillUnmount() {
-          clearInterval(this.interval);
+    constructor(props){
+        super(props);
+        this.create_lattice = this.create_lattice.bind(this);
+        this.get_new_prey_list = this.get_new_prey_list.bind(this);
+        this.get_new_predator_list = this.get_new_prey_list.bind(this);
+        this.get_unoccupied_neighbors = this.get_unoccupied_neighbors.bind(this);
+        this.draw_from_binomial = this.draw_from_binomial.bind(this);
+        this.update_lattice = this.update_lattice.bind(this);
+        this.get_neighbors = this.get_neighbors.bind(this);
+        this.init_node_list = this.init_node_list.bind(this);
+        this.get_x = this.get_x.bind(this);
+        this.get_y = this.get_y.bind(this);
+        this.get_node_index = this.get_node_index.bind(this);
+        this.pause = this.pause.bind(this);
+        this.state = { lattice: null, anim: 1, lattice_size:25 };
+    }
+    componentWillMount() {
+        this.create_lattice();
+    }
+    componentDidMount() {
+        setInterval(this.update_lattice, 100);
+    }
+    componentWillUnmount() {
+        clearInterval(this.interval);
     }
 
-   get_neighbors(i, j){
-       var N = this.state.N;
-       var neighbors = [];
+    pause(){
+        this.setState({anim: !this.state.anim});
+    }
 
-       var dx = [-1, 0, 1];
-       var dy = [-1, 0, 1];
-       for (var delta_x in dx){
-           for (var delta_y in dy){
-               if (!(delta_x == 0 && delta_y == 0)){
-                   var x = i + dx[delta_x];
-                   var y = j + dy[delta_y];
-                   if (x < 0){ x = N-1; }
-                   if (x >= N){ x = 0; }
-                   if (y < 0){ y = N-1; }
-                   if (y >= N){ y = 0; }
-                 //  console.log(x,y,i,j)
+    /*  =====================================================
+    //
+    //      initialization functions
+    //
+    //  ===================================================== */
+    init_node_list() {
+        var lattice_size = this.state.lattice_size;
+        var num_nodes = lattice_size*lattice_size;
+        var nodes = [];
+        for (var i = 0; i < num_nodes; i++){
+            var x_coord = this.get_x(i);
+            var y_coord = this.get_y(i);
+            var neighbors = this.get_neighbors(x_coord, y_coord);
+            var node_obj = {ct: i, x: x_coord, y: y_coord, neighbors: neighbors, state: EMPTY};
+            nodes.push(node_obj);
+        }
+        return nodes;
+    }
 
+    init_state_matrix(node_list) {
+        var lattice_size = this.state.lattice_size;
+        var state_matrix = [];
+        for (var i = 0; i < lattice_size; i++){
+            var row = [];
+            for (var j = 0; j < lattice_size; j++){
+                var state = Math.round(2*Math.random());
+                var node_index = this.get_node_index(i,j);
+                row.push(state);
+                node_list[node_index].state = state;
+            }
+            state_matrix.push(row);
+        }
+        return(state_matrix);
+    }
 
-                  // if (lattice[x][y] == st){
-                       neighbors.push({x:x,y:y});
-                  // }
-               }
-           }
-       }
-       return neighbors;
-   }
+    create_lattice() {
+        var node_list = this.init_node_list();
+        var state_matrix = this.init_state_matrix(node_list);
 
-   get_new_state(lattice, i, j){
-       // lotka volterra
-       // state 2 == empty
-       // state 1 == prey
-       // state 0 == predator
+        var prey_list = this.get_prey_list(node_list);
+        var predator_list = this.get_predator_list(node_list);
 
-       var C = 0.2
-       var E = 0.1
-       var spatial_scale = 1
+        this.setState({prey_list: prey_list, predator_list: predator_list, node_list: node_list, state_matrix: state_matrix});
+     }
 
-       if (lattice[i][j] == 1){
-          if (Math.random() < (E)){
-              return 0;
+     boundary_condition(coord) {
+        var lattice_size = this.state.lattice_size;
+        if (coord >= lattice_size){
+            return 0;
+        }
+        if (coord < 0){
+            return lattice_size-1;
+        }
+        return coord;
+     }
+
+    /*  =====================================================
+    //
+    //    functions to map between data structures
+    //
+    //  ===================================================== */
+
+    get_x(node_ct) {
+        // x is the row count
+        var lattice_size = this.state.lattice_size;
+        var row = Math.floor(node_ct / lattice_size);
+        return row;
+    }
+
+    get_y(node_ct) {
+        // y is the column
+        var lattice_size = this.state.lattice_size;
+        var col = node_ct % lattice_size;
+        return col;
+    }
+
+    get_node_index(x,y) {
+        var lattice_size = this.state.lattice_size;
+        var index = lattice_size*x + y;
+        return index;
+    }
+
+    get_prey_list(node_list){
+        var num_nodes = node_list.length;
+        var prey_list = [];
+        for (var i = 0; i < num_nodes; i++){
+          if (node_list[i].state == PREY){
+              prey_list.push(node_list[i]);
           }
-       }
+        }
+        return prey_list;
+    }
 
-       if (lattice[i][j] == 0){
-          var occupied_neighbors = this.ct_occupied_neighbors(i, j, 0);
-          for (var n = 0; n < occupied_neighbors; n++){
-             if (Math.random() < C/4){
-                 return 1;
-             }
+    get_predator_list(node_list){
+        var num_nodes = node_list.length;
+        var predator_list = [];
+        for (var i = 0; i < num_nodes; i++){
+          if (node_list[i].state == PREDATOR){
+              predator_list.push(node_list[i]);
           }
+        }
+        return predator_list;
+    }
+
+    get_neighbors(x,y) {
+        var lattice_size = this.state.lattice_size;
+        var neighbors = [];
+        // neighbors of x,y
+        for (var dx=-1; dx < 2; dx++){
+            for (var dy=-1; dy < 2; dy++){
+              var neighbor_x = x+dx;
+              var neighbor_y = y+dy;
+
+              neighbor_x = this.boundary_condition(neighbor_x);
+              neighbor_y = this.boundary_condition(neighbor_y);
+
+
+              if (!(neighbor_x === x && neighbor_y === y)){
+                  var neighbor_obj = {x: neighbor_x, y: neighbor_y};
+                  neighbors.push(neighbor_obj);
+              }
+            }
+        }
+        return neighbors;
+    }
+
+    get_unoccupied_neighbors(neighbors, state_matrix) {
+        var num_neighbors = neighbors.length;
+
+        var unoccupied_neighbors = [];
+        for (var i = 0; i < num_neighbors; i++){
+            var this_neighbor = neighbors[i];
+            var x = this_neighbor.x;
+            var y = this_neighbor.y;
+            var this_state = state_matrix[x][y];
+
+            if (this_state == EMPTY){
+                unoccupied_neighbors.push(neighbors[i]);
+            }
+        }
+        return unoccupied_neighbors;
+    }
+
+    /*  =====================================================
+    //
+    //   functions to update the lattice at each time step
+    //
+    //  ===================================================== */
+
+    draw_from_binomial(n, p){
+        var counter = 0;
+        var sum = 0;
+
+        while(counter < n){
+            if (Math.random() < p) {
+                sum += 1;
+            }
+            counter++;
+        }
+
+        return sum;
+    }
+
+    // Each occupied prey cell goes extinct w/ probability  E_prey
+    // and spreads to an unoccupied neighbor w/ probabiblity C_prey
+    get_new_prey_list(old_prey_list, old_state_matrix){
+        var new_prey_list = [];
+        var new_state_matrix = {...old_state_matrix};
+
+        var num_prey = old_prey_list.length;
+        for (var i = 0; i < num_prey; i++){
+            var this_prey = old_prey_list[i];
+            var unoccupied_neighbors = this.get_unoccupied_neighbors(this_prey.neighbors, old_state_matrix);
+            var num_unoccupied_neighbors = unoccupied_neighbors.length;
+
+            // draw from binomial(num_unoccupied_neighbors, C_prey)
+            var num_new_prey = this.draw_from_binomial(num_unoccupied_neighbors, C_PREY);
+
+            for (var new_prey = 0; new_prey < num_new_prey; new_prey++){
+                var this_neighbor = unoccupied_neighbors[new_prey];
+                var new_prey_index = this.get_node_index(this_neighbor.x, this_neighbor.y);
+
+                var old_node_object = old_prey_list[new_prey_index];
+                old_node_object.state = PREY;
+                new_prey_list.push(old_node_object);
+            }
+
+        }
+        //console.log(old_prey_list);
+    }
+
+    // Each predator goes extinct w/ probability E_predator
+    // and, IF two predators are adjacent to a prey cell,
+    // they spread to that prey cell w/ probability C_predator
+    get_new_predator_list(old_predator_list, old_state_matrix){
+
+        //console.log(old_predator_list);
+    }
+
+    update_lattice() {
+        var current_state = {...this.state};
+
+        var new_prey = this.get_new_prey_list(current_state.prey_list, current_state.state_matrix);
+        var new_predator = this.get_new_predator_list(current_state.predator_list, current_state.state_matrix);
+
+    }
+
+
+    /*  =====================================================
+    //
+    //   render
+    //
+    //  ===================================================== */
+
+    render() {
+       var lattice_size = this.state.lattice_size;
+       var state_matrix = this.state.state_matrix;
+       var rows = [];
+
+       for (var i = 0; i < lattice_size; i++){
+            var this_row = [];
+            for (var j = 0; j < lattice_size; j++){
+                var state = "state".concat(state_matrix[i][j]);
+                 this_row.push( (<div className="cell"><span className={state}></span></div>));
+            }
+            rows.push(<div className="row">{this_row}</div>)
        }
 
-       return lattice[i][j];
+       return (<div><div className="lattice">{rows}</div>  <div className="pause_button" onClick={this.pause}>pause</div></div>);
    }
+}
 
-   pause(){
-       this.setState({anim: !this.state.anim})
-   }
+export default Lattice;
+/*
+    get_neighbors(i, j){
+        var N = this.state.N;
+        var neighbors = [];
 
+        var dx = [-1, 0, 1];
+        var dy = [-1, 0, 1];
+        for (var delta_x in dx){
+            for (var delta_y in dy){
+                if (!(delta_x == 0 && delta_y == 0)){
+                    var x = i + dx[delta_x];
+                    var y = j + dy[delta_y];
+                    if (x < 0){ x = N-1; }
+                    if (x >= N){ x = 0; }
+                    if (y < 0){ y = N-1; }
+                    if (y >= N){ y = 0; }
 
-   update_pred(pred, prey){
-       // 2 adjacent predators must be adjacent to one prey
-       // replace prey w/ prob
+                    neighbors.push({x:x,y:y});
+                }
+            }
+        }
+        return neighbors;
+    }
 
-       // go extinct w/ prob
-
-   }
+    pause(){
+        this.setState({anim: !this.state.anim});
+    }
 
    update_lattice(){
        var N = this.state.N;
        var C = 0.5;
-       var E = 0.05;
+       var E = 0.0;
 
        var pred_c = 0.7;
        var pred_e = 0.9;
@@ -103,6 +311,50 @@ class Lattice extends Component {
        var prey = this.state.prey;
        var lattice = {...this.state.lattice};
        var obj_matrix = this.state.obj_matrix;
+
+      // update pred
+      var new_pred = [];
+      for (var p in pred){
+          var pr = pred[p];
+          var x = pr.x;
+          var y = pr.y;
+          var adj_tiles = obj_matrix[x][y].neighbors;
+
+          for (var adj1 in adj_tiles){
+              // check if pred
+              var adj1_x = adj_tiles[adj1].x;
+              var adj1_y = adj_tiles[adj1].y;
+
+              if (lattice[adj1_x][adj1_y] == 0){
+                  var adj1_neighbors = obj_matrix[adj1_x][adj1_y].neighbors;
+                  for (var adj2 in adj_tiles){
+                      var adj2_x = adj_tiles[adj2].x;
+                      var adj2_y = adj_tiles[adj2].y;
+                      if (adj2 in adj1_neighbors){
+                          if (lattice[adj2_x][adj2_y] == 1){
+                              if (Math.random() < pred_c){
+                                  var new_pred_cell = {x: adj2_x, y:adj2_y};
+                                  if (!(new_pred_cell in new_pred)){
+                                      new_pred.push(new_pred_cell);
+                                      lattice[adj2_x][adj2_y] = 0;
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+
+          if (Math.random() < pred_e){
+              //lattice[adj2_x][adj2_y] = 2;
+          }
+          else {
+              var new_pred_cell = {x: x, y:y};
+              new_pred.push(new_pred_cell);
+              lattice[adj2_x][adj2_y] = 2;
+          }
+
+      }
 
        if (this.state.anim && (prey.length) > 0){
 
@@ -141,50 +393,7 @@ class Lattice extends Component {
                  }
              }
 
-            // update pred
-            var new_pred = [];
-            for (var p in pred){
-                var pr = pred[p];
-                var x = pr.x;
-                var y = pr.y;
-                var adj_tiles = obj_matrix[x][y].neighbors;
 
-                for (var adj1 in adj_tiles){
-                    // check if pred
-                    var adj1_x = adj_tiles[adj1].x
-                    var adj1_y = adj_tiles[adj1].y
-                    if (lattice[adj1_x][adj1_y] == 0){
-                        var adj1_neighbors = obj_matrix[adj1_x][adj1_y].neighbors;
-                        for (var adj2 in adj_tiles){
-                            var adj2_x = adj_tiles[adj2].x
-                            var adj2_y = adj_tiles[adj2].y
-                            if (adj2 in adj1_neighbors){
-                                if (lattice[adj2_x][adj2_y] == 1){
-                                    if (Math.random() < pred_c){
-                                        var new_pred_cell = {x: adj2_x, y:adj2_y};
-                                        if (!(new_pred_cell in new_pred)){
-                                            new_pred.push(new_pred_cell);
-                                            lattice[adj2_x][adj2_y] = 0;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (Math.random() < pred_e){
-                    lattice[adj2_x][adj2_y] = 2;
-                }
-                else {
-                    var new_pred_cell = {x: x, y:y};
-                    if (!(new_pred_cell in new_pred)){
-                        new_pred.push(new_pred_cell);
-                        lattice[adj2_x][adj2_y] = 0;
-                    }
-                }
-
-            }
 
 
             this.setState({lattice: lattice, prey: new_prey});
@@ -203,7 +412,7 @@ class Lattice extends Component {
                    new_lattice[i][j]  = new_st;
                }
            }
-           this.setState({lattice: new_lattice});*/
+           this.setState({lattice: new_lattice});
 
    }
 
@@ -252,23 +461,4 @@ class Lattice extends Component {
         //return lattice;
         this.setState({lattice: lattice, obj_matrix: obj_matrix, pred: pred, prey: prey});
    }
-   //
-
-   render() {
-       var N = this.state.N;
-       var lattice = this.state.lattice;
-       var side_vector = Array.from(Array(N).keys());
-       var rows = [];
-       side_vector.forEach((i) => {
-           var this_row = [];
-           side_vector.forEach((j) => {
-               var state = "state".concat(lattice[i][j]);
-               this_row.push(<div className="cell"><span className={state}></span></div>);
-           });
-           rows.push(<div className="row">{this_row}</div>)
-       });
-       return (<div><div className="lattice">{rows}</div>  <div className="pause_button" onClick={this.pause}>pause</div></div>);
-   }
-}
-
-export default Lattice;
+ */

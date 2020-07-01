@@ -26,8 +26,6 @@ function App() {
                         <div className="nav_bar">
                             <div><Link to="/home">home</Link></div>
                             <div><Link to="/about">about</Link></div>
-                            <div><Link to="/research">research</Link></div>
-                            <div><Link to="/publications">publications</Link></div>
                             <div><Link to="/cv">cv</Link></div>
 
                         </div>
