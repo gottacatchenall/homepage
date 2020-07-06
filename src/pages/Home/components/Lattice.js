@@ -4,25 +4,32 @@ import './Lattice.sass';
 var PREDATOR = 1;
 var PREY = 0;
 var EMPTY = 2;
-
-var C_PREY = 0.1;
+var C_PREY = 0.3;
+var E_PREY = 0.;
+var C_PREDATOR = 0.15;
+var E_PREDATOR = 0.1;
 
 class Lattice extends Component {
     constructor(props){
         super(props);
+        this.state = { state_matrix: null, anim: 1, lattice_size: 30 };
         this.create_lattice = this.create_lattice.bind(this);
-        this.get_new_prey_list = this.get_new_prey_list.bind(this);
-        this.get_new_predator_list = this.get_new_prey_list.bind(this);
-        this.get_unoccupied_neighbors = this.get_unoccupied_neighbors.bind(this);
         this.draw_from_binomial = this.draw_from_binomial.bind(this);
         this.update_lattice = this.update_lattice.bind(this);
+
+        this.update_predator_cell = this.update_predator_cell.bind(this);
+        this.update_prey_cell = this.update_prey_cell.bind(this);
+
+        this.update_cell = this.update_cell.bind(this);
+
+        this.get_neighbors_of_some_state = this.get_neighbors_of_some_state.bind(this);
         this.get_neighbors = this.get_neighbors.bind(this);
-        this.init_node_list = this.init_node_list.bind(this);
-        this.get_x = this.get_x.bind(this);
-        this.get_y = this.get_y.bind(this);
-        this.get_node_index = this.get_node_index.bind(this);
+        this.get_new_state_matrix = this.get_new_state_matrix.bind(this);
+        this.shuffle = this.shuffle.bind(this);
+        this.are_adjacent = this.are_adjacent.bind(this);
+
+
         this.pause = this.pause.bind(this);
-        this.state = { lattice: null, anim: 1, lattice_size:25 };
     }
     componentWillMount() {
         this.create_lattice();
@@ -43,30 +50,24 @@ class Lattice extends Component {
     //      initialization functions
     //
     //  ===================================================== */
-    init_node_list() {
-        var lattice_size = this.state.lattice_size;
-        var num_nodes = lattice_size*lattice_size;
-        var nodes = [];
-        for (var i = 0; i < num_nodes; i++){
-            var x_coord = this.get_x(i);
-            var y_coord = this.get_y(i);
-            var neighbors = this.get_neighbors(x_coord, y_coord);
-            var node_obj = {ct: i, x: x_coord, y: y_coord, neighbors: neighbors, state: EMPTY};
-            nodes.push(node_obj);
-        }
-        return nodes;
-    }
-
-    init_state_matrix(node_list) {
+    init_state_matrix() {
         var lattice_size = this.state.lattice_size;
         var state_matrix = [];
         for (var i = 0; i < lattice_size; i++){
             var row = [];
             for (var j = 0; j < lattice_size; j++){
-                var state = Math.round(2*Math.random());
-                var node_index = this.get_node_index(i,j);
+                var u = Math.random();
+
+                var state = EMPTY;
+
+                if (u < 0.1){
+                    state = PREDATOR;
+                }
+                if (u > 0.6){
+                    state = PREY;
+                }
+
                 row.push(state);
-                node_list[node_index].state = state;
             }
             state_matrix.push(row);
         }
@@ -74,13 +75,8 @@ class Lattice extends Component {
     }
 
     create_lattice() {
-        var node_list = this.init_node_list();
-        var state_matrix = this.init_state_matrix(node_list);
-
-        var prey_list = this.get_prey_list(node_list);
-        var predator_list = this.get_predator_list(node_list);
-
-        this.setState({prey_list: prey_list, predator_list: predator_list, node_list: node_list, state_matrix: state_matrix});
+        var state_matrix = this.init_state_matrix();
+        this.setState({state_matrix: state_matrix});
      }
 
      boundary_condition(coord) {
@@ -100,85 +96,43 @@ class Lattice extends Component {
     //
     //  ===================================================== */
 
-    get_x(node_ct) {
-        // x is the row count
-        var lattice_size = this.state.lattice_size;
-        var row = Math.floor(node_ct / lattice_size);
-        return row;
-    }
-
-    get_y(node_ct) {
-        // y is the column
-        var lattice_size = this.state.lattice_size;
-        var col = node_ct % lattice_size;
-        return col;
-    }
-
-    get_node_index(x,y) {
-        var lattice_size = this.state.lattice_size;
-        var index = lattice_size*x + y;
-        return index;
-    }
-
-    get_prey_list(node_list){
-        var num_nodes = node_list.length;
-        var prey_list = [];
-        for (var i = 0; i < num_nodes; i++){
-          if (node_list[i].state == PREY){
-              prey_list.push(node_list[i]);
-          }
-        }
-        return prey_list;
-    }
-
-    get_predator_list(node_list){
-        var num_nodes = node_list.length;
-        var predator_list = [];
-        for (var i = 0; i < num_nodes; i++){
-          if (node_list[i].state == PREDATOR){
-              predator_list.push(node_list[i]);
-          }
-        }
-        return predator_list;
-    }
-
-    get_neighbors(x,y) {
+   get_neighbors(x,y) {
         var lattice_size = this.state.lattice_size;
         var neighbors = [];
         // neighbors of x,y
-        for (var dx=-1; dx < 2; dx++){
-            for (var dy=-1; dy < 2; dy++){
-              var neighbor_x = x+dx;
-              var neighbor_y = y+dy;
+        if (x){
+                for (var dx=-1; dx < 2; dx++){
+                    for (var dy=-1; dy < 2; dy++){
+                      var neighbor_x = x+dx;
+                      var neighbor_y = y+dy;
 
-              neighbor_x = this.boundary_condition(neighbor_x);
-              neighbor_y = this.boundary_condition(neighbor_y);
+                      neighbor_x = this.boundary_condition(neighbor_x);
+                      neighbor_y = this.boundary_condition(neighbor_y);
 
-
-              if (!(neighbor_x === x && neighbor_y === y)){
-                  var neighbor_obj = {x: neighbor_x, y: neighbor_y};
-                  neighbors.push(neighbor_obj);
-              }
-            }
+                      if (!(neighbor_x === x && neighbor_y === y)){
+                          var neighbor_obj = {x: neighbor_x, y: neighbor_y};
+                          neighbors.push(neighbor_obj);
+                      }
+                    }
+                }
+            return neighbors;
         }
-        return neighbors;
+       return [];
     }
 
-    get_unoccupied_neighbors(neighbors, state_matrix) {
+    get_neighbors_of_some_state(state_matrix, i, j, target_state) {
+        var neighbors = this.get_neighbors(i,j);
         var num_neighbors = neighbors.length;
-
-        var unoccupied_neighbors = [];
+        var return_neighbors = [];
         for (var i = 0; i < num_neighbors; i++){
-            var this_neighbor = neighbors[i];
-            var x = this_neighbor.x;
-            var y = this_neighbor.y;
-            var this_state = state_matrix[x][y];
+            var neighbor = neighbors[i];
+            var this_state = state_matrix[neighbor.x][neighbor.y];
 
-            if (this_state == EMPTY){
-                unoccupied_neighbors.push(neighbors[i]);
+            if (this_state == target_state){
+                return_neighbors.push(neighbors[i]);
             }
         }
-        return unoccupied_neighbors;
+        return return_neighbors;
     }
 
     /*  =====================================================
@@ -201,48 +155,110 @@ class Lattice extends Component {
         return sum;
     }
 
-    // Each occupied prey cell goes extinct w/ probability  E_prey
-    // and spreads to an unoccupied neighbor w/ probabiblity C_prey
-    get_new_prey_list(old_prey_list, old_state_matrix){
-        var new_prey_list = [];
-        var new_state_matrix = {...old_state_matrix};
-
-        var num_prey = old_prey_list.length;
-        for (var i = 0; i < num_prey; i++){
-            var this_prey = old_prey_list[i];
-            var unoccupied_neighbors = this.get_unoccupied_neighbors(this_prey.neighbors, old_state_matrix);
-            var num_unoccupied_neighbors = unoccupied_neighbors.length;
-
-            // draw from binomial(num_unoccupied_neighbors, C_prey)
-            var num_new_prey = this.draw_from_binomial(num_unoccupied_neighbors, C_PREY);
-
-            for (var new_prey = 0; new_prey < num_new_prey; new_prey++){
-                var this_neighbor = unoccupied_neighbors[new_prey];
-                var new_prey_index = this.get_node_index(this_neighbor.x, this_neighbor.y);
-
-                var old_node_object = old_prey_list[new_prey_index];
-                old_node_object.state = PREY;
-                new_prey_list.push(old_node_object);
-            }
-
+    are_adjacent(node1, node2){
+        if (Math.abs(node1.x - node2.x) <= 1 && Math.abs( node1.y - node2.y) <= 1){
+            return true;
         }
-        //console.log(old_prey_list);
+        return false;
     }
 
-    // Each predator goes extinct w/ probability E_predator
-    // and, IF two predators are adjacent to a prey cell,
-    // they spread to that prey cell w/ probability C_predator
-    get_new_predator_list(old_predator_list, old_state_matrix){
+    update_predator_cell(old_state_matrix, i, j){
+        var new_state_matrix = {...old_state_matrix};
 
-        //console.log(old_predator_list);
+        var predator_neighbors = this.get_neighbors_of_some_state(old_state_matrix, i, j, PREDATOR);
+        var prey_neighbors = this.get_neighbors_of_some_state(old_state_matrix, i, j, PREY);
+
+        var num_predator_neighbors = predator_neighbors.length;
+        var num_prey_neighbors = prey_neighbors.length;
+
+        if (Math.random() < E_PREDATOR){
+            new_state_matrix[i][j] = EMPTY;
+        }
+
+        if (num_predator_neighbors < 1){
+            return new_state_matrix;
+        }
+
+        if (num_prey_neighbors < 1){
+            return new_state_matrix;
+        }
+
+
+        for (var predator_ct = 0; predator_ct < num_predator_neighbors; predator_ct++){
+            for (var prey_ct = 0; prey_ct < num_prey_neighbors; prey_ct++){
+                if (this.are_adjacent(prey_neighbors[prey_ct], predator_neighbors[predator_ct])){
+                    if (Math.random() < C_PREDATOR){
+                        var prey_x = prey_neighbors[prey_ct].x;
+                        var prey_y = prey_neighbors[prey_ct].y;
+                        new_state_matrix[prey_x][prey_y] = PREDATOR;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return new_state_matrix;
+    }
+
+    shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return(array);
+    }
+
+    update_prey_cell(old_state_matrix, i, j){
+        var new_state_matrix = {...old_state_matrix};
+        var empty_neighbors = this.get_neighbors_of_some_state(old_state_matrix, i, j, EMPTY);
+        var num_empty_neighbors = empty_neighbors.length;
+
+        if (Math.random() < E_PREY){
+            new_state_matrix[i][j] = EMPTY;
+        }
+
+        if (num_empty_neighbors > 0){
+            //var num_colonized = this.draw_from_binomial(num_empty_neighbors, C_PREY);
+            // if (num_colonized > 0){
+            if (Math.random() < C_PREY) {
+                empty_neighbors = this.shuffle(empty_neighbors);
+                var new_x = empty_neighbors[0].x;
+                var new_y = empty_neighbors[0].y;
+                new_state_matrix[new_x][new_y] = PREY;
+            }
+        }
+        return new_state_matrix;
+    }
+
+    update_cell(old_state_matrix, i, j){
+    }
+
+    get_new_state_matrix(old_state_matrix){
+        var lattice_size = this.state.lattice_size;
+        var new_state_matrix = {...old_state_matrix};
+
+        for (var i = 0; i < lattice_size; i++){
+            for (var j = 0; j < lattice_size; j++){
+                if (old_state_matrix[i][j] == PREY){
+                    new_state_matrix = this.update_prey_cell(old_state_matrix, i, j);
+                }
+                if (old_state_matrix[i][j] == PREDATOR){
+                    new_state_matrix = this.update_predator_cell(old_state_matrix, i, j);
+                }
+            }
+        }
+
+        return(new_state_matrix);
     }
 
     update_lattice() {
+        if (this.state.anim){
         var current_state = {...this.state};
+        var old_state_matrix = current_state.state_matrix;
 
-        var new_prey = this.get_new_prey_list(current_state.prey_list, current_state.state_matrix);
-        var new_predator = this.get_new_predator_list(current_state.predator_list, current_state.state_matrix);
-
+        var new_state_matrix = this.get_new_state_matrix(old_state_matrix);
+        this.setState({state_matrix: new_state_matrix});
+        }
     }
 
 
