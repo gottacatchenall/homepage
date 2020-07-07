@@ -23,7 +23,7 @@ function App() {
                     {/* nav bar*/}
                     <div className="header">
                         <div className="nav_bar">
-                            <div><Link to="/home">home</Link></div>
+                            <div><Link to="/">home</Link></div>
                             <div><Link to="/about">about</Link></div>
                             <div><Link to="/cv">cv</Link></div>
 
@@ -46,7 +46,7 @@ function App() {
                                 <CV/>
                             </Route>
 
-                            <Route path="/home">
+                            <Route path="/">
                                       <Home data={[5,10,1,3]} size={[500,500]} />
                             </Route>
                         </div>
