@@ -5,7 +5,6 @@ import About from './pages/About/About';
 import CV from './pages/CV/CV';
 import Home from './pages/Home/Home';
 import Research from './pages/Research/Research';
-import Publications from './pages/Publications/Publications';
 
 
 import {
@@ -41,10 +40,6 @@ function App() {
 
                             <Route path="/research">
                                 <Research/>
-                            </Route>
-
-                            <Route path="/publications">
-                                <Publications/>
                             </Route>
 
                             <Route path="/cv">

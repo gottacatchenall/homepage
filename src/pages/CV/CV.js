@@ -159,15 +159,7 @@ class CV extends Component {
 
 
    componentWillMount() {
-       const cv_markdown = require("./cv.md");
-
-
-       fetch(cv_markdown).then((response) => response.text()).then((text) => {
-
-            console.log(text);
-
-           this.setState({ cv_markdown: text })
-       })
+     
    }
 
 
