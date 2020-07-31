@@ -46,8 +46,8 @@ function App() {
                                 <CV/>
                             </Route>
 
-                            <Route path="/">
-                                      <Home data={[5,10,1,3]} size={[500,500]} />
+                            <Route exact path="/">
+                                <Home />
                             </Route>
                         </div>
                     </Switch>

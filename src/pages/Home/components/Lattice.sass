@@ -1,25 +1,34 @@
 @import "../../../main.sass"
 
 .lattice
-    display: block
-    min-width: 550px
-    width: 100%
+    display: table
     padding: 0px
-
+    width: 100%
+    height: 100%
 
 .row
-    width: 100%
     display: table-row
+    padding: 0px
+    margin: 0px
+    min-height: 10px
+    height: 100%
 
 .cell
     display: table-cell
     border-width: 1px
     border-color: #222
     border-style: solid
+    padding: 0px
+    height: 100%
+    margin: 0px
     span
-        display: block
-        width: 16px
-        height: 16px
+        display: inline-block
+        margin: 0px
+        width: 100%
+        height: 100%
+        min-width: 10px
+        min-height: 10px
+        padding: 0px
 
 .state0
     background-color: #3dcc97

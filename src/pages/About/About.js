@@ -26,7 +26,7 @@ class About extends Component {
 
    render() {
         //var md = this.state.md_text;
-        return (<div><h1> about  </h1></div>
+        return (<div><h1> about  </h1> <p>coming soon...</p></div>
         //        <div> <ReactMarkdown source={md}  /></div>
         );
    }
