@@ -60,7 +60,7 @@ class Lattice extends Component {
 
                 var state = EMPTY;
 
-                if (u < 0.1){
+                if (u < 0.05){
                     state = PREDATOR;
                 }
                 if (u > 0.6){
