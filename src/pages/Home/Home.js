@@ -26,7 +26,7 @@ class Home extends Component {
                 </View>
                 <View style={{flex: 0.5}}>
                     <div className="label_container">
-                        <label>community ecology <br/> and complexity </label>
+                        <label>community ecology <br/> in space and time </label>
                     </div>
                 </View>
 

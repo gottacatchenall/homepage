@@ -18,12 +18,53 @@ h4
     font-weight: 300
     font-size: 0.8em
 
-p
-    font-weight: 400
-    padding-left: 0em
-    letter-spacing: -0.01em
-    line-height: 1.2em
+
+$links: #3f3fc6
+$links-hover: #3f3fc6
+
+=ease($time)
+    transition: $time ease
+
+.about_container
+    margin: 20px 0px 100px 0px
 
 .about_body
+    max-width: 600px
+    font-weight: 500
+    font-size: 1.4em
+    padding-left: 0em
+    letter-spacing: -0.01em
+    line-height: 1.7em
+
+    .email_text
+        font-weight: 500
+        font-size: 0.8em
+        a
+            font-size: 0.8em
+            font-weight: 500
+            +ease(0.09s)
+            &:hover
+                font-weight: 600
+                border-bottom: 3px solid $links
+            float: right
+            margin: 10px 0px 
+
+        .email
+            font-weight: 700
+            background-color: #f2f2f2
+            padding: 5px
+
     a
-        color: blue
+        color: $links
+        text-decoration: none
+        border-bottom: 3px solid $links
+        +ease(0.09s)
+        font-weight: 700
+        &:hover
+            font-weight: 800
+            color: $links-hover
+            border-bottom: 4.5px solid $links
+            font-style: none
+            +ease(0.09s)
+        &:active
+            opacity: 0.8
