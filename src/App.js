@@ -32,8 +32,12 @@ function App() {
                     </div>
 
                     {/* routing*/}
-                    <Switch>
                         <div className="body_container">
+                        <Switch>
+
+                            <Route exact path="/">
+                                <Home />
+                            </Route>
                             <Route path="/about">
                                 <About/>
                             </Route>
@@ -45,12 +49,9 @@ function App() {
                             <Route path="/cv">
                                 <CV/>
                             </Route>
+                            </Switch>
 
-                            <Route exact path="/">
-                                <Home />
-                            </Route>
                         </div>
-                    </Switch>
                 </div>
             </Router>
         </div>

@@ -60,7 +60,9 @@ class CV extends Component {
 
             {"title": "systems engineering intern", "subtitle":"NASA Jet Propulsion Laboratory", "time": "summer 2015",  "description": "Created a content management system for the Mission Planning, Sequencing, and Analysis division's website. Developed skills using popular web frameworks for both front and back-end development. Learned skills in asynchronous web development."},
             ];
-            var skills = [];
+
+            var skills = [{"title": "programming", "description_header": "languages", "description": "julia, python, R, C/C++, bash, javascript, TeX"},
+        {"title": "data science and bioinformatics", "description_header": "buzzwords", "description": "bayesian multilevel modeling, approximate bayesian computation, species distribution modeling, genome assembly, phylogenetic modeling"}, {"title": "web development", "description_header": "frameworks", "description": "AngularJS, React Native, Redux, NodeJS, MongoDB, SQL, RESTful"}, {"title": "graphics/media", "description_header": "tools", "description": "Adobe Photoshop, Illustrator, Premiere, After Effects"} ];
 
             var education_html = this.get_section_html(education, "education");
             var publications_html = this.get_section_html(publications, "publications");
