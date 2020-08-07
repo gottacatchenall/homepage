@@ -56,14 +56,13 @@ class Lattice extends Component {
         for (var i = 0; i < lattice_size; i++){
             var row = [];
             for (var j = 0; j < lattice_size; j++){
-                var u = Math.random();
 
                 var state = EMPTY;
-
-                if (u < 0.05){
+                var denom = 3+5*Math.random();
+                if (j < lattice_size/denom){
                     state = PREDATOR;
                 }
-                if (u > 0.6){
+                else {
                     state = PREY;
                 }
 

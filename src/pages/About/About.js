@@ -5,29 +5,23 @@ import './About.sass';
 class About extends Component {
    constructor(props){
       super(props);
-      this.getMarkdown = this.getMarkdown.bind(this);
    }
 
    componentDidMount() {
-       const markdown = require("./about.md");
-       fetch(markdown).then((response) => response.text()).then((text) => {
-           console.log(text);
-           this.setState({md_text: text});
-       });
    }
 
    componentDidUpdate() {
    }
 
 
-   getMarkdown(){
-
-   }
 
    render() {
         //var md = this.state.md_text;
-        return (<div><h1> about  </h1> <p>coming soon...</p></div>
-        //        <div> <ReactMarkdown source={md}  /></div>
+        return (<div>
+                    <h1> about  </h1>
+                    <p className="about_body">hi--<br/>
+                    i'm michael, and this is my website. i'm a graduate student in the <a>Gonzalez Lab</a> at <a>McGill University</a> </p>
+                </div>
         );
    }
 }

@@ -15,32 +15,33 @@ class CV extends Component {
                     "title": "McGill University",
                     "subtitle": "doctor of philosophy",
                     "description_header": "Gonzalez Lab, Department of Biology ",
-                    "description": "this is description",
+                    "description": "how does the structure of ecological communities change across time and space? how can we predict how human influence on our planet, in the forms of land use change and climate change, will affect both the Earth's biodiversity and the services it provides humanity? how can we design landscapes to mitigate biodiversity loss? these are the central questions i'm thinking about these days.  ",
                     "time": "2020 - present"
                 },
                 {
                     "title": "University of Colorado Boulder",
                     "subtitle": "master of arts",
                     "description_header": "Flaxman Lab, Department of Ecology and Evolutionary Biology",
-                    "description": "My master's thesis, Phase Transitions in Landscape Connectivity, discusses ",
+                    "description": "my master's work discusses how landscape structure and dispersal capacity create phase transitions in metapopulation synchrony under a stochastic-logistic model of population dynamics. see 'phase transitions in metapopulation synchrony' below for the associated publication",
                     "time": "2018 - 2020"
                 },
                 {
                     "title": "University of Colorado Boulder",
                     "subtitle": "bachelor of arts",
-                    "description_header": "Ecology and Evolutionary Biology",
+                    "description_header": "major",
+                    "description": "ecology and evolutionary biology",
                     "time": "2015 - 2020"
                 }
             ];
 
             var publications = [
-                { "title": "phase transitions in metapopulation synchrony", "time": "july 2020",
+                { "title": "phase transitions in metapopulation synchrony", "time": "august 2020",
                 "subtitle": "in submission",
                 "description": "archiv link coming soon"}
             ];
 
-            var teaching = [ {"title": "teaching assistant", "subtitle": "general biology 2", "time": "spring 2020",},
-                            {"title": "teaching assistant", "subtitle" : "general biology 1", "time": "fall 2020"},
+            var teaching = [ {"title": "teaching assistant", "subtitle": "general biology laboratory 2", "time": "spring 2020", "description": "led laboratory experiments in clases of roughly 20 students. taught fundementals of the scientific method, introductory statistics, and lab protocols for a survey of topics in biology."},
+                            {"title": "teaching assistant", "subtitle" : "general biology laboratory 1", "time": "fall 2020", "description": "led laboratory experiments in clases of roughly 20 students. taught fundementals of the scientific method, introductory statistics, and lab protocols for a survey of topics in biology."},
                             {"title": "learning assistant", "subtitle" : "calculus 1, 2, 3", "time": "spring 2016 - fall 2017", "description": "Taught calculus 1, 2, and 3 in a workgroup setting, gained experience in communicating abstract concepts, reframing mathematical ideas in different ways for different learners."}
 
             ];
