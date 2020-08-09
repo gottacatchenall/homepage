@@ -18,20 +18,38 @@ class Home extends Component {
 
    render() {
         return (
-            <div className="home_container">
 
-            <View style={{flex:1, flexDirection: 'row'}}>
-                <View style={{flex: 0.5}}>
-                        <Lattice/>
-                </View>
-                <View style={{flex: 0.5}}>
-                    <div className="label_container">
-                        <label>community ecology <br/> in space and time </label>
-                    </div>
-                </View>
+                        <View style={{
+                               flex: 1,
+                               flexDirection: 'row',
+                               justifyContent: 'center',
+                               alignItems: 'center',
+                               flexWrap: 'wrap-reverse',
+                             }}>
 
-            </View>
-            </div>
+                                <View style={{
+                                   flex: 1,
+                                   minWidth: 750,
+                                   width: '40%',
+                                   minHeight: 300,
+                                    }}>
+
+                                    <div className="lattice_container">
+                                        <Lattice/>
+                                    </div>
+                               </View>
+
+                               <View style={{
+                                   flex: 1,
+                                   minWidth: 250,
+                                   width: '40%',
+                                   minHeight: 300,
+                               }}>
+                                   <div className="label_container">
+                                       <label>community ecology <br/> in space and time </label>
+                                   </div>
+                               </View>
+                             </View>
 
         );
    }

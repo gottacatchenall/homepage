@@ -1,4 +1,6 @@
 import React, {Component} from 'react';
+import { View } from 'react-native';
+
 import './CV.sass'
 
 class CV extends Component {
@@ -108,10 +110,20 @@ class CV extends Component {
 
    render() {
         return (
+                <View style={{
+                       flex: 1,
+                       flexDirection: 'row',
+                       maxWidth: 1200,
+                       justifyContent: 'center',
+                       alignItems: 'center',
+                       alignContent: 'center',
+                     }}>
+
                 <div className="cv">
                     <h1>curriculum vita</h1>
                     {this.get_resume()}
                 </div>
+                </View>
         );
    }
 }
